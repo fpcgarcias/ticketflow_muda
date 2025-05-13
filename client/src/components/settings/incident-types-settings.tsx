@@ -195,6 +195,8 @@ export function IncidentTypesSettings() {
       departmentId: newDepartmentId,
     };
 
+    console.log("Enviando newIncidentType:", JSON.stringify(newIncidentType, null, 2));
+
     const updatedIncidentTypes = [...incidentTypes, newIncidentType];
     saveIncidentTypesMutation.mutate(updatedIncidentTypes);
   };
@@ -325,20 +327,20 @@ export function IncidentTypesSettings() {
                 id="new-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Problema Técnico"
+                placeholder="Ex: Suporte Técnico Nível 1"
               />
             </div>
             
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="new-value">Valor de Referência</Label>
               <Input
                 id="new-value"
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
-                placeholder="Ex: technical"
+                placeholder="Ex: suporte_tecnico_n1 (único, sem espaços)"
               />
-              <p className="text-xs text-neutral-500 mt-1">
-                Este valor é usado internamente no sistema e deve ser único
+              <p className="text-xs text-muted-foreground">
+                Este valor é usado internamente e deve ser único.
               </p>
             </div>
 

@@ -8,8 +8,8 @@ export interface SystemSettings {
 
 // Valores padrão para as configurações do sistema
 const defaultSettings: SystemSettings = {
-  companyName: 'Vix Brasil',
-  supportEmail: 'suporte@vixbrasil.com',
+  companyName: 'Oficina Muda',
+  supportEmail: 'suporte@oficinamuda.com.br',
   allowCustomerRegistration: true
 };
 

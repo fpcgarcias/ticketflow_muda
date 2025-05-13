@@ -121,6 +121,7 @@ export const systemSettings = pgTable("system_settings", {
 export const incidentTypes = pgTable("incident_types", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  value: text("value").notNull().unique(), // Valor único usado como identificador interno
   departmentId: integer("department_id"), // Relacionamento com departamento
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

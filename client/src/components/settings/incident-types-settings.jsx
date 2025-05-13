@@ -76,13 +76,14 @@ export function IncidentTypesSettings() {
     // Formulário para edição
     var _g = useState(''), editName = _g[0], setEditName = _g[1];
     var _j = useState(null), editDepartmentId = _j[0], setEditDepartmentId = _j[1];
+    var _k = useState(null), editValue = _k[0], setEditValue = _k[1];
     // Carregar tipos de incidentes e departamentos
-    var _k = useQuery({
-        queryKey: ["/api/settings/incident-types"],
-    }), incidentTypesData = _k.data, isLoadingIncidentTypes = _k.isLoading;
     var _l = useQuery({
+        queryKey: ["/api/settings/incident-types"],
+    }), incidentTypesData = _l.data, isLoadingIncidentTypes = _l.isLoading;
+    var _m = useQuery({
         queryKey: ["/api/settings/departments"],
-    }), departmentsData = _l.data, isLoadingDepartments = _l.isLoading;
+    }), departmentsData = _m.data, isLoadingDepartments = _m.isLoading;
     // Atualizar estados quando os dados são carregados
     useEffect(function () {
         setIncidentTypes(Array.isArray(incidentTypesData) ? incidentTypesData : []);
@@ -124,10 +125,12 @@ export function IncidentTypesSettings() {
         setNewDepartmentId(null);
         setEditName('');
         setEditDepartmentId(null);
+        setEditValue(null);
     };
     var startEdit = function (incidentType) {
         setEditingId(incidentType.id);
         setEditName(incidentType.name);
+        setEditValue(incidentType.value);
         setEditDepartmentId(incidentType.departmentId);
     };
     var cancelEdit = function () {
@@ -150,9 +153,34 @@ export function IncidentTypesSettings() {
             });
             return;
         }
+        
+        // Se não houver um valor, gerar automaticamente a partir do nome
+        var finalValue = editValue;
+        if (!finalValue) {
+            finalValue = editName.trim().toLowerCase().replace(/\s+/g, '_');
+            
+            // Verificar se o valor já existe (excluindo o item atual)
+            var baseValue = finalValue;
+            var counter = 1;
+            while (incidentTypes.some(function (type) { 
+                return type.value === finalValue && type.id !== editingId; 
+            })) {
+                finalValue = baseValue + "_" + counter;
+                counter++;
+            }
+        }
+        
         var updatedIncidentTypes = incidentTypes.map(function (type) {
-            return type.id === editingId ? __assign(__assign({}, type), { name: editName, departmentId: editDepartmentId }) : type;
+            return type.id === editingId ? __assign(__assign({}, type), { 
+                name: editName, 
+                value: finalValue,
+                departmentId: editDepartmentId 
+            }) : type;
         });
+        
+        // Debug: mostrar o array que está sendo enviado para o backend
+        console.log("Enviando para o servidor (edit):", JSON.stringify(updatedIncidentTypes, null, 2));
+        
         saveIncidentTypesMutation.mutate(updatedIncidentTypes);
     };
     var addIncidentType = function () {
@@ -164,6 +192,7 @@ export function IncidentTypesSettings() {
             });
             return;
         }
+
         if (!newDepartmentId) {
             toast({
                 title: "Erro",
@@ -183,19 +212,39 @@ export function IncidentTypesSettings() {
             return;
         }
         
+        // Gerar o value automaticamente a partir do nome
+        var autoValue = newName.trim().toLowerCase().replace(/\s+/g, '_');
+        
+        // Verificar se o value já existe e incrementar com número se necessário
+        var baseValue = autoValue;
+        var counter = 1;
+        while (incidentTypes.some(function (type) { return type.value === autoValue; })) {
+            autoValue = baseValue + "_" + counter;
+            counter++;
+        }
+        
         var newId = incidentTypes.length > 0
             ? Math.max.apply(Math, incidentTypes.map(function (d) { return d.id; })) + 1
             : 1;
         var newIncidentType = {
             id: newId,
             name: newName,
+            value: autoValue,
             departmentId: newDepartmentId,
         };
         var updatedIncidentTypes = __spreadArray(__spreadArray([], incidentTypes, true), [newIncidentType], false);
+        
+        // Debug: mostrar o array completo que está sendo enviado para o backend
+        console.log("Enviando para o servidor:", JSON.stringify(updatedIncidentTypes, null, 2));
+        
         saveIncidentTypesMutation.mutate(updatedIncidentTypes);
     };
     var deleteIncidentType = function (id) {
         var updatedIncidentTypes = incidentTypes.filter(function (type) { return type.id !== id; });
+        
+        // Debug: mostrar o array após a remoção
+        console.log("Enviando para o servidor (delete):", JSON.stringify(updatedIncidentTypes, null, 2));
+        
         saveIncidentTypesMutation.mutate(updatedIncidentTypes);
     };
     if (isLoadingIncidentTypes || isLoadingDepartments) {
@@ -274,7 +323,7 @@ export function IncidentTypesSettings() {
             
             <div>
               <Label htmlFor="new-name">Nome do Tipo</Label>
-              <Input id="new-name" value={newName} onChange={function (e) { return setNewName(e.target.value); }} placeholder="Ex: Problema Técnico"/>
+              <Input id="new-name" value={newName} onChange={function (e) { return setNewName(e.target.value); }} placeholder="Ex: Suporte Técnico"/>
             </div>
             
             <div>
